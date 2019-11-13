@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <group ns="itu_rover"> 
+  <!--group ns="itu_rover"--> 
   <rosparam command="load" file="$(find rover_19_localization)/params/ekf_params.yaml" />
   <rosparam command="load" file="$(find rover_19_localization)/params/navsat_params.yaml" />
 
@@ -19,5 +19,5 @@
       <remap from="imu/data" to="/imu/data"/>
      
   </node>
-  </group>
+  <!--/group-->
 </launch>

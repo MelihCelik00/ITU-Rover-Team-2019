@@ -2,7 +2,7 @@
 # 2018 URC and 2018 ERC subs joy mobile_base,  pubs to serial node
 # 1-3 are the left side of the mobile_base, 2-4 are the right side of the mobile_base.
 # "S + motor_1 + motor_2 + motor_3  + motor_4 + F"
-# İf you dont use your joy, it will send 0000 to serial node
+# If you dont use your joy, it will send 0000 to serial node
 # ITU mobile_base Team
 import rospy
 import math
@@ -10,78 +10,113 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 
 
-wayLeft="0"
-speed1String="000"
-wayRight="000"
-speed2String="000"
-twist =Twist();
-pub=rospy.Publisher("/mobile_base_serial_topic", String, queue_size=50)
+
+twist_cmd = Twist();
+twist_nav = Twist();
+twist = Twist();
+
+pub=rospy.Publisher("/rover_serial_topic", String, queue_size=10)
+
+
 def callbackcmd(data):  
-	twist.linear.x = data.linear.x 
-	twist.angular.z = -data.angular.z
+	twist_cmd.linear.x = data.linear.x * 80  
+	twist_cmd.angular.z = data.angular.z * 80
 	
 def callbacknav(data):
-	global wayLeft, speed1String, wayRight,speed2String
-	twist.linear.x = data.linear.x *6
-	twist.angular.z = -data.angular.z*10
-	pub.publish("S" + str(wayLeft) + str(speed1String) + str(wayLeft) + str(speed1String) + str(wayRight) + str(speed2String) + str(wayRight) + str(speed2String)+ "F")
-	
+	twist_nav.linear.x = data.linear.x * 80
+	twist_nav.angular.z = data.angular.z * 80
+
 def main():
-	global wayLeft, speed1String, wayRight,speed2String
-	rospy.init_node('mobile_base_cmd_sub_serial')
-	rospy.Subscriber("/mobile_base_joy/cmd_vel", Twist, callbackcmd)
-	rospy.Subscriber("/mobile_base_navigation/cmd_vel", Twist, callbacknav)
-	b=0.71
-	leftWheel =0
-	rightWheel=0
-	cmdRadius =0
+	rospy.init_node('rover_19_cmd_sub_serial')
+	rospy.Subscriber("/cmd_vel", Twist, callbacknav)
+	rospy.Subscriber("/rover_joy/cmd_vel", Twist, callbackcmd)
+
 	
+	
+	way_left="0"
+	left_wheelString="000"
+	way_right="000"
+	right_wheelString="000"
+	way_left = 0
+	way_right = 0
+	all_wheels_msg = ""
+	robotic_arm_msg = "1000656515656552011665320002"
+	science_msg = "3212321526541653"
+
+	left_wheel = 0 #left wheel
+	right_wheel = 0 #right wheel
+
+	rate = rospy.Rate(20)
+
 	while not rospy.is_shutdown():
-		if(twist.angular.z != 0):
 
-			cmdRadius = twist.linear.x/(twist.angular.z+0.0001)
-			leftWheel  = (twist.angular.z * (cmdRadius +b/2))*166
-			rightWheel =  (twist.angular.z * (cmdRadius - b/2))*166
+		if(twist_cmd.linear.x != 0.0 or twist_cmd.angular.z != 0.0):
+			twist = twist_cmd
+
+
 		else:
-			leftWheel = (twist.linear.x)*166
-			rightWheel = (twist.linear.x)*166
-			
-	   
-
-		wayLeft = 0
-		wayRight = 0
+			twist = twist_nav
 		
-		if(leftWheel>= 0):
-			wayLeft=0
+
+		if twist.linear.x >= 0:
+				
+			left_wheel = twist.linear.x -  twist.angular.z
+			#left_wheel = twist.linear.x -  (twist.linear.x/2) 
+			right_wheel = twist.linear.x + twist.angular.z
+			#right_wheel = twist.linear.x + (twist.linear.x/2)
+
+
+		elif twist.linear.x < 0: 
+
+			left_wheel = twist.linear.x + twist.angular.z
+			#left_wheel = twist.linear.x + (twist.linear.x/2)
+			right_wheel = twist.linear.x - twist.angular.z
+			#right_wheel = twist.linear.x - (twist.linear.x/2) 
+
+		if(left_wheel<0):
+			way_left =1
+			left_wheel *= -1
 		else:
-			wayLeft=1
-		
-		if(rightWheel>= 0):
-			wayRight=1
+			way_left =0
+		if(right_wheel<0):
+			way_right =1
+			right_wheel *= -1
 		else:
-			wayRight=0
+			way_right=0
 
-		speed1String = str(abs(int(leftWheel)))
-		speed2String = str(abs(int(rightWheel)))
+		print("left: "+str(left_wheel)+ " right: "+ str(right_wheel))
 		
-		if abs(leftWheel) < 10:
-			speed1String = "00" + str(abs(int(leftWheel)))
+		if abs(left_wheel) < 10:
+			left_wheelString = "00" + str(int(left_wheel))
 			
-		elif abs(leftWheel) < 100:
-			speed1String = "0" + str(abs(int(leftWheel)))
+		elif abs(left_wheel) < 100:
+			left_wheelString = "0" + str(int(left_wheel))
+
+		elif abs(left_wheel) > 100:
+			left_wheelString = str(int(left_wheel))
 			
 
-		if abs(rightWheel) < 10:
-			speed2String = "00" + str(abs(int(rightWheel)))
+		if abs(right_wheel) < 10:
+			right_wheelString = "00" + str(int(right_wheel))
 			
-		elif abs(rightWheel) < 100:
-			speed2String = "0" + str(abs(int(rightWheel)))
+		elif abs(right_wheel) < 100:
+			right_wheelString = "0" + str(int(right_wheel))
+
+		elif abs(right_wheel) > 100:
+			right_wheelString = str(int(right_wheel))
+
+		if(left_wheel > 160):
+			left_wheelString = "160"
+
+		if(right_wheel > 160):
+			right_wheelString = "160"
+
 
 		
-		print("S" + str(wayLeft) + str(speed1String) + "," + str(wayLeft) + str(speed1String) + "," + str(wayRight) + str(speed2String) + ","+ str(wayRight) + str(speed2String)+ "F")
-		pub.publish("S" + str(wayLeft) + str(speed1String) + str(wayLeft) + str(speed1String) + str(wayRight) + str(speed2String) + str(wayRight) + str(speed2String)+ "F")
-		
-	rospy.spin()
+		all_wheels_msg = str(way_left) + str(left_wheelString) + str(way_right) + str(right_wheelString)
+		print("S"+ all_wheels_msg+ robotic_arm_msg + science_msg +"F")
+		pub.publish("S"+ all_wheels_msg + robotic_arm_msg + science_msg +"F")
+		rate.sleep()
 
 if __name__ == '__main__':
 	main()

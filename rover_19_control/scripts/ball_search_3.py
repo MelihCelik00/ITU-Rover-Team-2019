@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 2018 URC  ball searcher node starts when  arrives gps waypoint and could not detect ball 
-# bearing_to_ball  topic is a string that gives ball  angle from rover. 
-# first, rover is rotating  360 degree . Later it starts to search ball with sending move base goals
-# ITU Rover Team
+
 import rospy
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import actionlib
@@ -18,26 +15,26 @@ import tf
 class GoForwardAvoid():
     def __init__(self):
         rospy.init_node('ball_search', anonymous=False)
-
+        self.currPosX=0
+        self.currPosY=0
+        self.currPosZ=0
+        self.yaw=0
         self.rotate_once=1
-        self.dist=1
+        self.send_once=1
+        self.R=0.5
+        self.ball_is_found=0
         self.state=RoverStateMsg()
-        self.go_back_counter=0
-        self.firstPosX=0
-        self.firstPosY=0
-
-        self.state.state=self.state.FIND_IMAGE
         print("waiting move base client...")
         self.client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
         self.client.wait_for_server()
         print("client is on")
         rate = rospy.Rate(10) # 1hz
         #tell the action client that we want to spin a thread by default
-        self.Pub = rospy.Publisher('rover_navigation/cmd_vel', Twist, queue_size=10)
+        self.Pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         
 
         while not rospy.is_shutdown():
-          
+            rospy.Subscriber('/outdoor_waypoint_nav/odometry/filtered',Odometry, self.robotPoseSubscriber)
             rospy.Subscriber('/rover_state_topic',RoverStateMsg, self.stateSubscriber)
             #rospy.Subscriber('/move_base/result',MoveBaseActionResult, self.moveSubscriber)
             #print(self.state.state)
@@ -45,23 +42,14 @@ class GoForwardAvoid():
                 if( self.rotate_once==1):
                     print("searching")
                     self.go_forward()
-                    self.rotate(90)
-                    self.rotate(90)
-                    self.rotate(90)
-                    self.rotate(90)
+                    self.rotate(180)
+                    self.rotate(-180)
                     self.rotate_once=0
 
                 if(self.state.state==self.state.FIND_IMAGE):
                     self.go_forward()
-                    self.go_back_counter +=1
-                    if(self.go_back_counter>8):
-                        print(str(self.go_back_counter))
-                        self.go_back_counter=0
-                        self.rotate_once=1
-                        self.send_once=1
-                        self.do_once=1
-                        self.go_to_point(self.firstPosX,self.firstPosY)
-
+                if(self.state.state==self.state.FIND_IMAGE):
+                    self.rotate(90)
             else:
                 print("waiting")
 
@@ -73,6 +61,7 @@ class GoForwardAvoid():
         if(self.state.state==self.state.REACH_IMAGE):
             if(self.send_once==1):
                 print("found image")
+                self.Pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10) 
                 self.twist = Twist()
                 self.twist.linear.x=0
                 self.twist.angular.z=0
@@ -102,20 +91,15 @@ class GoForwardAvoid():
         self.roll = euler[0]
         self.pitch = euler[1]
         self.yaw = euler[2]
-        #sadece ilk noktayı alır
-        if(self.do_once==1):
-            self.firstPosX=self.currPosX
-            self.firstPosY=self.currPosY
-            self.do_once=0
 
-    def go_to_point(self,x,y):
+    def go_forward(self):
 
-        print("Going To Point...")
+        print("Going forward...")
         goal=MoveBaseGoal()
         goal.target_pose.header.frame_id = "/base_link"
-        
-        goal.target_pose.pose.position.x = x
-        goal.target_pose.pose.position.y =y
+        dist=1                                                  #1 metre ileri gidiyor 
+        goal.target_pose.pose.position.x = dist
+        goal.target_pose.pose.position.y =0
         goal.target_pose.pose.position.z = 0
 
         q = tf.transformations.quaternion_from_euler(0,0,0)
@@ -126,8 +110,7 @@ class GoForwardAvoid():
 
         self.client.send_goal(goal)
         wait = self.client.wait_for_result()
-       
-       # print(str(self.dist)
+        dist=dist+0.5
 
     def rotate(self, angle):     
         print("Rotating...")
@@ -148,6 +131,11 @@ class GoForwardAvoid():
          
         self.client.send_goal(goal)
         wait = self.client.wait_for_result()
+    def rotate_2(self):
+        self.twist = Twist()
+        self.twist.angular.z=0.5
+        self.twist.linear.x=0
+        self.Pub.publish(self.twist)
    
     
 if __name__ == '__main__':

@@ -131,7 +131,7 @@ def check_buttons():
         velocity_paused = True
     
     elif buttons_array[4] == 1 and velocity_paused == True:
-        rospy.loginfo("continuing to follow wapoints...")
+        rospy.loginfo("continuing to follow waypoints...")
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
         launch = roslaunch.parent.ROSLaunchParent(uuid,[location_safety_node])

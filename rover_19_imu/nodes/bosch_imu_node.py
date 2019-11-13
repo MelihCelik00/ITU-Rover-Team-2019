@@ -177,13 +177,14 @@ if __name__ == '__main__':
     # Get parameters values
     port = rospy.get_param('~port', '/dev/ttyUSB0')
     frame_id = rospy.get_param('~frame_id', 'imu_link')
-    frequency = rospy.get_param('frequency', 100)
+    frequency = rospy.get_param('frequency', 100) 
     operation_mode = rospy.get_param('operation_mode', OPER_MODE_NDOF)
+    rospy.loginfo(operation_mode)
 
     # Open serial port
     rospy.loginfo("Opening serial port: %s...", port)
     try:
-        ser = serial.Serial(port, 115200, timeout=0.02)
+        ser = serial.Serial(port, 115200, timeout=0.02) #115200
     except serial.serialutil.SerialException:
         rospy.logerr("IMU not found at port " + port + ". Check the port in the launch file.")
         sys.exit(0)

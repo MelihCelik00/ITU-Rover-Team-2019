@@ -16,8 +16,8 @@ def main():
 	navMsg = NavSatFix()
 	navMsg.header.frame_id = "map"
 	navMsg.header.stamp = rospy.Time.now()
-	navMsg.latitude =41.2323
-	navMsg.longitude = 31.2323
+	navMsg.latitude =40.514689
+	navMsg.longitude = -111.502291
 	while not rospy.is_shutdown():
 		gpsPub.publish(navMsg)
 

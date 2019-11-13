@@ -28,20 +28,19 @@ class Localization(object):
         self.vy = 0.0
         self.vth = 0.0
 
-        self.mobile_base_accx=0.0
+        self.rover_accx=0.0
         self.yaw=0.0
 
   
         self.current_time =  rospy.Time.now()
         self.last_time =  rospy.Time.now()
         self.odom_cur=Odometry()
-        self.odom_pub = rospy.Publisher('/odometry/filtered', Odometry, queue_size = 50)
+        self.odom_pub = rospy.Publisher('/odometry/wheel', Odometry, queue_size = 50)  #    /husky_velocity_controller/odom
         self.odom_broadcaster = tf.TransformBroadcaster()
         self.twist = Twist()
         self.controller()
-
-   
-
+       
+     
  
     def callback_vel(self,data):
 
@@ -76,7 +75,7 @@ class Localization(object):
           
            
              
-            self.odom_broadcaster.sendTransform((self.x, self.y, self.z),self.q,self.current_time,"base_link","odom")
+            #self.odom_broadcaster.sendTransform((self.x, self.y, self.z),self.q,self.current_time,"base_link","odom")
  
             # next, we'll publish the odometry message over ROS
             self.odom = Odometry()

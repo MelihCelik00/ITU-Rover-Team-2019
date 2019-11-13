@@ -24,8 +24,8 @@ def move():
 		print("Enter long ")
 		string_y = raw_input()
 
-		waypoint.latitude = float(string_y)#29.0233425
-		waypoint.longitude = float(string_x)#41.1051722
+		waypoint.latitude = float(string_y) #29.0233425
+		waypoint.longitude = float(string_x) #41.1051722
 
 		Pub.publish(waypoint)	
 

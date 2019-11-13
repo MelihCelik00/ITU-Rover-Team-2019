@@ -21,7 +21,7 @@ class Localization(object):
         self.current_time =  rospy.Time.now()
         self.last_time =  rospy.Time.now()
         self.Point=PointCloud2()
-        self.pose_pub = rospy.Publisher('/scan_3d',PointCloud2, queue_size = 10)
+        self.pose_pub = rospy.Publisher('/rover_serial_encoder',String, queue_size = 10)
         self.controller()
        
      
@@ -31,14 +31,18 @@ class Localization(object):
        
       
     def controller(self):
-        rate = rospy.Rate(10) #10 Hz
+
+        #rospy.Subscriber('/cloud', PointCloud2, self.callback)
+
+        msg = ""
+        x = 1344
         self.rate = rospy.Rate(5) #10 Hz
         while not rospy.is_shutdown():
-            rospy.Subscriber('/cloud', PointCloud2, self.callback)
+            msg = "S"+ str(x)+",911116,"+str(x)+",11125F"
             self.current_time = rospy.Time.now()
             self.Point.header.stamp=self.current_time
-            self.pose_pub.publish(self.Point)
-
+            self.pose_pub.publish(msg)
+            x += 2
             self.rate.sleep()
 
             

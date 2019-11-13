@@ -133,8 +133,11 @@ include_directories(
 add_executable(teleop_joy_f310 src/teleop_joy_f310.cpp)
 target_link_libraries(teleop_joy_f310 ${catkin_LIBRARIES})
 
-add_executable(autonom_joy_f310 src/autonom_joy_f310.cpp)
-target_link_libraries(autonom_joy_f310 ${catkin_LIBRARIES})
+add_executable(clear_costmap src/clear_costmap.cpp)
+target_link_libraries(clear_costmap ${catkin_LIBRARIES})
+
+#add_executable(autonom_joy_f310 src/autonom_joy_f310.cpp)
+#target_link_libraries(autonom_joy_f310 ${catkin_LIBRARIES})
 
 #add_executable(drill_joy_f310  src/drill_joy.cpp)
 #target_link_libraries(drill_joy_f310  ${catkin_LIBRARIES})

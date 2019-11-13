@@ -5,8 +5,8 @@ RoverSerial:
         sub_topic3: 'rover_serial_3'
 
     pub_topics:
-        pub_topic1: 'rover_serial_sensor'
-        pub_topic2: 'rover_serial_encoder'
+        pub_topic1: 'rover_serial_encoder'
+        pub_topic2: 'rover_serial_sensor'
         pub_topic3: 'rover_serial_sensor3'
 
     baudrates:

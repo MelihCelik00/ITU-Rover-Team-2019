@@ -4,10 +4,10 @@
 #include <sensor_msgs/Joy.h>
 
 using namespace std;
-class teleop_mobile_base
+class teleop_rover
 {
 public:
-  teleop_mobile_base();
+  teleop_rover();
 
 private:
   void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
@@ -23,11 +23,11 @@ private:
 };
 
 
-teleop_mobile_base::teleop_mobile_base():
+teleop_rover::teleop_rover():
   linear_(1),
   angular_(0),
   turbo_(5),
-  kill_(4),
+  kill_(2),
   turbo_scale(2.0)
 {
 
@@ -37,21 +37,23 @@ teleop_mobile_base::teleop_mobile_base():
   nh_.param("kill", kill_, kill_);
   nh_.param("turbo_scale", turbo_scale, turbo_scale);
 
-  vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/mobile_base_joy/cmd_vel", 1);//mobile_base_joy/
+  //vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/rover_joy/cmd_vel", 1);
+  vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/joy_teleop/cmd_vel", 1);
 
-  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &teleop_mobile_base::joyCallback, this);
+
+  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &teleop_rover::joyCallback, this);
 
   sent_disable_msg = false;
 
 }
 
-void teleop_mobile_base::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
+void teleop_rover::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   geometry_msgs::Twist twist;
   if (joy->buttons[kill_])
-  {
-    twist.angular.z = joy->axes[angular_]*3.2; //TODO: scale ekle
-    twist.linear.x = joy->axes[linear_]*3.2;
+  {    
+    twist.angular.z = joy->axes[angular_]*0.5; //TODO: scale ekle
+    twist.linear.x = joy->axes[linear_]*0.5;
     vel_pub_.publish(twist);
     sent_disable_msg = false;
   }
@@ -68,17 +70,17 @@ void teleop_mobile_base::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     {
       vel_pub_.publish(twist);
       sent_disable_msg = true;
-    }
+    }    
   }
-
+  
 
 }
 
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "teleop_mobile_base");
-  teleop_mobile_base teleop_mobile_base;
+  ros::init(argc, argv, "teleop_rover");
+  teleop_rover teleop_rover;
 
   ros::spin();
 }
